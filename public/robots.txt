@@ -1,0 +1,9 @@
+# WebotApp Accounting Robots Directive
+User-agent: *
+Disallow: /install/
+Disallow: /dashboard/
+Disallow: /invoices/
+Disallow: /bills/
+Disallow: /banking/
+Disallow: /settings/
+Allow: /
