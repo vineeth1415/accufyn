@@ -23,9 +23,11 @@ class DashboardController extends Controller
 
         // KPI 1: Bank & Cash Balances (short TTL — balances change often)
         $totalCash   = Cache::remember('kpi_total_cash', 60, fn() => BankAccount::sum('current_balance'));
-        $bankAccounts = Cache::remember('bank_accounts_list', 60, fn() =>
-            BankAccount::orderByDesc('is_default')->get()
+        $bankAccountCount = Cache::remember('bank_accounts_count', 60, fn() =>
+            BankAccount::count()
         );
+        // Keep $bankAccounts as a collection for the view but don't cache it as objects
+        $bankAccounts = BankAccount::orderByDesc('is_default')->get();
 
         // KPI 2 & 3: Receivables / Payables (1-min cache)
         $totalReceivables = Cache::remember('kpi_receivables', 60, fn() =>
@@ -102,16 +104,12 @@ class DashboardController extends Controller
         });
 
         // Recent Invoices & Transactions (short cache — 30 s)
-        $recentInvoices = Cache::remember('recent_invoices', 30, fn() =>
-            Invoice::with('customer')->latest()->take(5)->get()
-        );
+        $recentInvoices = Invoice::with('customer')->latest()->take(5)->get();
 
-        $recentTransactions = Cache::remember('recent_transactions', 30, fn() =>
-            Transaction::with(['bankAccount', 'customer', 'vendor', 'category'])
-                ->latest('transaction_date')
-                ->take(6)
-                ->get()
-        );
+        $recentTransactions = Transaction::with(['bankAccount', 'customer', 'vendor', 'category'])
+            ->latest('transaction_date')
+            ->take(6)
+            ->get();
 
         return view('dashboard.index', compact(
             'company',

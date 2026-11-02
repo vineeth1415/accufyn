@@ -19,7 +19,7 @@
             <div class="mt-4">
                 <h3 class="text-2xl font-extrabold text-white">{{ $currencySymbol ?? ($company->currency_symbol ?? '₹') }}{{ number_format($totalCash, 2) }}</h3>
                 <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
-                    <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> Reconciled</span> across {{ count($bankAccounts) }} accounts
+                    <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> Reconciled</span> across {{ is_countable($bankAccounts) ? count($bankAccounts) : $bankAccounts->count() }} accounts
                 </p>
             </div>
         </div>
