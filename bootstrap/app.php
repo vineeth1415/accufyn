@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 
 // Auto-create required cache, view, and session storage directories if missing
+umask(0000);
 $basePath = dirname(__DIR__);
 $requiredStorageDirs = [
     $basePath . '/storage/framework/views',
@@ -17,8 +18,9 @@ $requiredStorageDirs = [
 ];
 foreach ($requiredStorageDirs as $dir) {
     if (!is_dir($dir)) {
-        @mkdir($dir, 0775, true);
+        @mkdir($dir, 0777, true);
     }
+    @chmod($dir, 0777);
 }
 
 // Auto-create .env from .env.example if missing

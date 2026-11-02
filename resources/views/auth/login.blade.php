@@ -94,6 +94,14 @@
                     <i class="fa-solid fa-arrow-right text-xs text-white"></i>
                 </button>
             </form>
+
+            <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span class="text-slate-500">App Owner / Super Admin?</span>
+                <a href="{{ route('superadmin.login') }}" class="font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1.5 transition bg-amber-50 hover:bg-amber-100/80 px-2.5 py-1 rounded-lg border border-amber-200">
+                    <i class="fa-solid fa-crown text-amber-500 text-xs"></i>
+                    <span>Super Admin Console &rarr;</span>
+                </a>
+            </div>
         </div>
 
         <p class="text-center text-xs text-slate-400 mt-8">

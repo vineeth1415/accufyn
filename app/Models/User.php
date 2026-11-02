@@ -89,9 +89,14 @@ class User extends Authenticatable
         return $activeCount >= $this->package->listing_limit;
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return in_array(strtoupper($this->role ?? ''), ['SUPER_ADMIN', 'SUPERADMIN']);
+    }
+
     public function isAdmin(): bool
     {
-        return strtoupper($this->role ?? '') === 'ADMIN';
+        return in_array(strtoupper($this->role ?? ''), ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN']);
     }
 
     public function isAccountant(): bool
@@ -111,37 +116,37 @@ class User extends Authenticatable
 
     public function canViewReports(): bool
     {
-        return in_array(strtoupper($this->role ?? ''), ['ADMIN', 'ACCOUNTANT', 'AUDITOR']);
+        return in_array(strtoupper($this->role ?? ''), ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'AUDITOR']);
     }
 
     public function canExportReports(): bool
     {
-        return in_array(strtoupper($this->role ?? ''), ['ADMIN', 'ACCOUNTANT', 'AUDITOR']);
+        return in_array(strtoupper($this->role ?? ''), ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'AUDITOR']);
     }
 
     public function canManageAccounting(): bool
     {
-        return in_array(strtoupper($this->role ?? ''), ['ADMIN', 'ACCOUNTANT', 'STAFF']);
+        return in_array(strtoupper($this->role ?? ''), ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'STAFF']);
     }
 
     public function canManageLedgers(): bool
     {
-        return in_array(strtoupper($this->role ?? ''), ['ADMIN', 'ACCOUNTANT']);
+        return in_array(strtoupper($this->role ?? ''), ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT']);
     }
 
     public function canManageUsers(): bool
     {
-        return $this->isAdmin();
+        return $this->isSuperAdmin() || $this->isAdmin();
     }
 
     public function canManageSettings(): bool
     {
-        return $this->isAdmin();
+        return $this->isSuperAdmin() || $this->isAdmin();
     }
 
     public function canAccessAdmin(): bool
     {
-        return $this->isAdmin();
+        return $this->isSuperAdmin() || $this->isAdmin();
     }
 
     public function canAccessStaff(): bool
@@ -152,6 +157,11 @@ class User extends Authenticatable
     public function getRoleBadgeAttribute(): array
     {
         return match (strtoupper($this->role ?? 'ADMIN')) {
+            'SUPER_ADMIN', 'SUPERADMIN' => [
+                'label' => 'Super Administrator (Top Owner)',
+                'icon'  => 'fa-crown',
+                'class' => 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 font-bold'
+            ],
             'ADMIN'      => ['label' => 'Administrator', 'icon' => 'fa-shield-halved', 'class' => 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800'],
             'ACCOUNTANT' => ['label' => 'Accountant',    'icon' => 'fa-calculator',    'class' => 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'],
             'AUDITOR'    => ['label' => 'Auditor (Reports & Excel Only)', 'icon' => 'fa-file-excel', 'class' => 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'],

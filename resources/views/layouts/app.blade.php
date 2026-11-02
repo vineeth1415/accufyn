@@ -271,36 +271,65 @@
             border-left: 3px solid #10b981;
             color: #34d399;
         }
+
+        /* Smooth custom scrollbar for sidebar */
+        .custom-sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.35);
+            border-radius: 9999px;
+        }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.6);
+        }
     </style>
 </head>
 <body class="h-full antialiased flex overflow-hidden">
 
-    <!-- Sidebar Navigation -->
-    <aside class="w-64 flex flex-col justify-between shrink-0 select-none z-30 transition-colors">
-        <div>
-            <!-- App Brand -->
-            <div class="h-16 flex items-center gap-3 px-6 border-b">
-                @if(!empty($company->logo_path) && file_exists(public_path($company->logo_path)))
-                    <img src="{{ asset($company->logo_path) }}" alt="{{ $company->name ?? 'WebotApp' }}" class="w-9 h-9 object-contain rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-0.5 bg-white shrink-0">
-                @else
-                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-lg shadow-sm shrink-0">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-                @endif
-                <div class="min-w-0">
-                    <h1 class="text-sm font-bold tracking-wide flex items-center gap-1.5 truncate">
-                        {{ $company->name ?? 'WebotApp' }} <span class="text-emerald-600 dark:text-emerald-400 font-semibold text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">PRO</span>
-                    </h1>
-                    <p class="text-[10px] tracking-wider uppercase font-medium truncate">Accounting & Invoicing</p>
+    <!-- Sidebar Navigation (Scrollable & Responsive) -->
+    <aside class="w-64 h-screen max-h-screen flex flex-col shrink-0 select-none z-30 transition-colors border-r">
+        <!-- App Brand (Fixed at Top) -->
+        <div class="h-16 flex items-center gap-3 px-6 border-b shrink-0">
+            @if(!empty($company->logo_path) && file_exists(public_path($company->logo_path)))
+                <img src="{{ asset($company->logo_path) }}" alt="{{ $company->name ?? 'WebotApp' }}" class="w-9 h-9 object-contain rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-0.5 bg-white shrink-0">
+            @else
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-lg shadow-sm shrink-0">
+                    <i class="fa-solid fa-coins"></i>
                 </div>
+            @endif
+            <div class="min-w-0">
+                <h1 class="text-sm font-bold tracking-wide flex items-center gap-1.5 truncate">
+                    {{ $company->name ?? 'WebotApp' }} <span class="text-emerald-600 dark:text-emerald-400 font-semibold text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 shrink-0">PRO</span>
+                </h1>
+                <p class="text-[10px] tracking-wider uppercase font-medium truncate">Accounting & Invoicing</p>
             </div>
+        </div>
 
-            <!-- Navigation Links -->
-            <nav class="p-3 space-y-1 text-sm font-medium">
+        <!-- Navigation Links (Scrollable Area) -->
+        <div class="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1 text-sm font-medium custom-sidebar-scroll">
+            <nav class="space-y-1">
                 @if(Auth::check() && !Auth::user()->isAuditor())
                     <a href="{{ route('dashboard') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         <i class="fa-solid fa-chart-pie w-5 text-center text-emerald-600 dark:text-emerald-400"></i>
                         <span>Dashboard</span>
+                    </a>
+                @endif
+
+                @if(Auth::check() && Auth::user()->canManageUsers())
+                    <a href="{{ route('users.index') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                        <i class="fa-solid {{ Auth::user()->isSuperAdmin() ? 'fa-crown text-amber-500' : 'fa-users-gear text-purple-600 dark:text-purple-400' }} w-5 text-center"></i>
+                        <span class="flex-1 font-semibold">User Management</span>
+                        @if(Auth::user()->isSuperAdmin())
+                            <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-black bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30">Owner</span>
+                        @endif
                     </a>
                 @endif
 
@@ -377,18 +406,28 @@
             </nav>
         </div>
 
-        <!-- User Profile & System Status -->
-        <div class="user-footer p-4 border-t">
+        <!-- User Profile & System Status (Fixed at Bottom) -->
+        <div class="user-footer p-4 border-t shrink-0">
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs border border-emerald-500/20">
-                        {{ strtoupper(substr(Auth::user()->name ?? 'Admin', 0, 2)) }}
-                    </div>
+                    @if(Auth::user()->isSuperAdmin())
+                        <div class="w-8 h-8 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/30 shadow-xs">
+                            <i class="fa-solid fa-crown text-[11px]"></i>
+                        </div>
+                    @else
+                        <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs border border-emerald-500/20">
+                            {{ strtoupper(substr(Auth::user()->name ?? 'Admin', 0, 2)) }}
+                        </div>
+                    @endif
                     <div class="min-w-0">
-                        <p class="text-xs font-semibold truncate">{{ Auth::user()->name ?? 'Administrator' }}</p>
-                        <p class="text-[10px] truncate flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>{{ strtoupper(Auth::user()->role ?? 'ADMIN') }}</span>
+                        <p class="text-xs font-semibold truncate flex items-center gap-1">
+                            <span>{{ Auth::user()->name ?? 'Administrator' }}</span>
+                            @if(Auth::user()->isSuperAdmin())
+                                <i class="fa-solid fa-crown text-[10px] text-amber-500" title="Super Administrator / Top Owner"></i>
+                            @endif
+                        </p>
+                        <p class="text-[10px] truncate flex items-center gap-1 font-semibold {{ Auth::user()->isSuperAdmin() ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ Auth::user()->isSuperAdmin() ? 'bg-amber-400' : 'bg-emerald-500' }} animate-pulse"></span>
+                            <span>{{ Auth::user()->isSuperAdmin() ? 'SUPER ADMIN (OWNER)' : strtoupper(Auth::user()->role ?? 'ADMIN') }}</span>
                         </p>
                     </div>
                 </div>
@@ -417,6 +456,13 @@
                     <i id="themeIconSun" class="fa-solid fa-sun text-amber-500 hidden"></i>
                     <i id="themeIconMoon" class="fa-solid fa-moon text-slate-600"></i>
                 </button>
+
+                @if(Auth::check() && Auth::user()->canManageUsers())
+                    <a href="{{ route('users.index') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-xl shadow-sm transition">
+                        <i class="fa-solid fa-user-plus text-slate-950"></i>
+                        <span class="text-slate-950 font-bold">+ New User</span>
+                    </a>
+                @endif
 
                 @if(Auth::check() && Auth::user()->canManageAccounting())
                     <a href="{{ route('invoices.create') }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow-sm transition">

@@ -7,27 +7,101 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <span>User Management &amp; RBAC</span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 font-semibold">Security</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-200 dark:border-violet-800 font-semibold">Security</span>
             </h1>
-            <p class="text-xs text-slate-400">Manage user accounts, roles, access permissions, and auditor privileges</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Manage user accounts, roles, access permissions, and auditor privileges</p>
         </div>
         <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" 
-            class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-sm transition">
+            class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition">
             <i class="fa-solid fa-user-plus text-white"></i>
-            <span class="text-white force-white">Add User</span>
+            <span class="text-white force-white">Add User (Detailed Modal)</span>
         </button>
     </div>
 
+    <!-- Visible New User Creation Block -->
+    <div id="createUserBlock" class="glass-card rounded-2xl border border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-950/20 p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-sm">
+                    <i class="fa-solid fa-user-plus text-sm"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>New User Creation Block</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300 font-bold uppercase">Quick Add</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Instantly register users with assigned privileges and roles</p>
+                </div>
+            </div>
+            @if(Auth::check() && Auth::user()->isSuperAdmin())
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-crown text-amber-500"></i>
+                    <span>Top Owner Access</span>
+                </span>
+            @endif
+        </div>
+
+        <form action="{{ route('users.store') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end text-xs">
+            @csrf
+            <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
+                <input type="text" name="name" required placeholder="e.g. John Doe"
+                    class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 shadow-xs">
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
+                <input type="email" name="email" required placeholder="user@company.com"
+                    class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 shadow-xs">
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">System Role *</label>
+                <select name="role" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-emerald-600 shadow-xs">
+                    <option value="STAFF">Staff / Sales</option>
+                    <option value="ACCOUNTANT">Accountant</option>
+                    <option value="AUDITOR">Auditor (Excel Filing)</option>
+                    <option value="ADMIN" selected>Administrator</option>
+                    @if(Auth::check() && Auth::user()->isSuperAdmin())
+                        <option value="SUPER_ADMIN">👑 Super Admin (Top Owner)</option>
+                    @endif
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Password *</label>
+                <input type="password" name="password" required minlength="6" placeholder="Min 6 characters"
+                    class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 shadow-xs">
+            </div>
+
+            <div>
+                <input type="hidden" name="is_active" value="1">
+                <button type="submit" class="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 h-[38px]">
+                    <i class="fa-solid fa-user-plus text-white"></i>
+                    <span class="text-white">Create User</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- Role Privileges Info Banner -->
-    <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+    <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+        <div class="p-3 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-500/30 dark:border-amber-700/60 space-y-1">
+            <div class="flex items-center gap-1.5 font-extrabold text-amber-700 dark:text-amber-400">
+                <i class="fa-solid fa-crown text-amber-500"></i>
+                <span>Super Admin (Owner)</span>
+            </div>
+            <p class="text-[11px] text-slate-600 dark:text-slate-300">Top Owner. Master privilege to create, edit, &amp; delete users and govern system.</p>
+        </div>
+
         <div class="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/50 space-y-1">
             <div class="flex items-center gap-1.5 font-bold text-purple-700 dark:text-purple-300">
                 <i class="fa-solid fa-shield-halved"></i>
                 <span>Administrator</span>
             </div>
-            <p class="text-[11px] text-slate-600 dark:text-slate-400">Full system control, user accounts, company settings, updates &amp; AI engine.</p>
+            <p class="text-[11px] text-slate-600 dark:text-slate-400">Full system control, company settings, updates &amp; AI engine.</p>
         </div>
 
         <div class="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 space-y-1">
@@ -43,7 +117,7 @@
                 <i class="fa-solid fa-file-excel"></i>
                 <span>Auditor (Restricted)</span>
             </div>
-            <p class="text-[11px] text-slate-600 dark:text-slate-400"><strong>View &amp; Excel Export only</strong> for financial reports &amp; ledgers for tax filing.</p>
+            <p class="text-[11px] text-slate-600 dark:text-slate-400"><strong>View &amp; Excel Export only</strong> for financial reports &amp; tax filing.</p>
         </div>
 
         <div class="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 space-y-1">
@@ -56,10 +130,17 @@
     </div>
 
     <!-- Quick Stats Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <div class="glass-card p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <p class="text-[11px] font-medium text-slate-500">Total Users</p>
             <p class="text-xl font-bold text-slate-900 dark:text-white mt-0.5">{{ $totalUsers }}</p>
+        </div>
+        <div class="glass-card p-3.5 rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20">
+            <p class="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <i class="fa-solid fa-crown text-[10px]"></i>
+                <span>Super Admins</span>
+            </p>
+            <p class="text-xl font-black text-amber-700 dark:text-amber-300 mt-0.5">{{ $superAdminCount ?? 0 }}</p>
         </div>
         <div class="glass-card p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <p class="text-[11px] font-medium text-purple-600 dark:text-purple-400">Admins</p>
@@ -93,8 +174,9 @@
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto">
-                <select name="role" class="bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white">
+                <select name="role" class="bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-medium">
                     <option value="">All Roles</option>
+                    <option value="SUPER_ADMIN" {{ request('role') === 'SUPER_ADMIN' ? 'selected' : '' }}>Super Administrator</option>
                     <option value="ADMIN" {{ request('role') === 'ADMIN' ? 'selected' : '' }}>Administrator</option>
                     <option value="ACCOUNTANT" {{ request('role') === 'ACCOUNTANT' ? 'selected' : '' }}>Accountant</option>
                     <option value="AUDITOR" {{ request('role') === 'AUDITOR' ? 'selected' : '' }}>Auditor</option>
@@ -182,23 +264,35 @@
                                 {{ $u->created_at ? $u->created_at->format('M d, Y') : '—' }}
                             </td>
                             <td class="py-3.5 px-4 text-right space-x-1">
-                                <button type="button" onclick="openEditUserModal({{ json_encode($u) }})" 
-                                    class="p-1.5 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-emerald-600 hover:text-emerald-700 transition" 
-                                    title="Edit User">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
+                                @if(!$u->isSuperAdmin() || Auth::user()->isSuperAdmin())
+                                    <button type="button" onclick="openEditUserModal({{ json_encode($u) }})" 
+                                        class="p-1.5 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-emerald-600 hover:text-emerald-700 transition" 
+                                        title="Edit User">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                @else
+                                    <span class="p-1.5 px-2 rounded-lg bg-amber-500/10 text-amber-500 text-[10px]" title="Owner Account (Protected)">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </span>
+                                @endif
                                 
                                 @if(Auth::id() !== $u->id)
-                                    <form action="{{ route('users.destroy', $u->id) }}" method="POST" class="inline" 
-                                        onsubmit="return confirm('Are you sure you want to delete user \'{{ $u->name }}\'?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                            class="p-1.5 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600 transition" 
-                                            title="Delete User">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </form>
+                                    @if($u->isSuperAdmin() && !Auth::user()->isSuperAdmin())
+                                        <span class="p-1.5 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px]" title="Protected Super Admin Account">
+                                            <i class="fa-solid fa-lock"></i>
+                                        </span>
+                                    @else
+                                        <form action="{{ route('users.destroy', $u->id) }}" method="POST" class="inline" 
+                                            onsubmit="return confirm('Are you sure you want to delete user \'{{ $u->name }}\'?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                class="p-1.5 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600 transition" 
+                                                title="Delete User">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endif
                             </td>
                         </tr>
@@ -266,9 +360,12 @@
                     <option value="ACCOUNTANT">Accountant (Invoices, Bills, Banking, Custom Ledgers, Reports)</option>
                     <option value="AUDITOR" selected>Auditor (Reports View &amp; Excel Export Only for Filing)</option>
                     <option value="ADMIN">Administrator (Full Access &amp; Settings)</option>
+                    @if(Auth::check() && Auth::user()->isSuperAdmin())
+                        <option value="SUPER_ADMIN">👑 Super Administrator (Top Owner — Full Authority)</option>
+                    @endif
                 </select>
                 <p class="text-[10px] text-slate-500 mt-1">
-                    * <strong>Auditor:</strong> Specially restricted to viewing financial reports &amp; custom ledgers, and exporting Excel data for tax and audit filing.
+                    * <strong>Super Admin:</strong> Top owner with master privilege to create, edit, and delete all accounts.
                 </p>
             </div>
 
@@ -342,6 +439,9 @@
                     <option value="ACCOUNTANT">Accountant (Invoices, Bills, Banking, Custom Ledgers, Reports)</option>
                     <option value="AUDITOR">Auditor (Reports View &amp; Excel Export Only for Filing)</option>
                     <option value="ADMIN">Administrator (Full Access &amp; Settings)</option>
+                    @if(Auth::check() && Auth::user()->isSuperAdmin())
+                        <option value="SUPER_ADMIN">👑 Super Administrator (Top Owner — Full Authority)</option>
+                    @endif
                 </select>
             </div>
 

@@ -40,6 +40,11 @@ class RoleMiddleware
 
         $userRole = strtoupper($user->role ?? '');
 
+        // SUPER_ADMIN (Top Owner) has master access to everything
+        if (in_array($userRole, ['SUPER_ADMIN', 'SUPERADMIN'])) {
+            return $next($request);
+        }
+
         // ADMIN has access to everything
         if ($userRole === 'ADMIN') {
             return $next($request);

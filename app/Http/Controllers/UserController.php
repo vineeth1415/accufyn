@@ -36,6 +36,7 @@ class UserController extends Controller
 
         // Metrics
         $totalUsers      = User::count();
+        $superAdminCount = User::whereIn('role', ['SUPER_ADMIN', 'SUPERADMIN'])->count();
         $adminCount      = User::where('role', 'ADMIN')->count();
         $accountantCount = User::where('role', 'ACCOUNTANT')->count();
         $auditorCount    = User::where('role', 'AUDITOR')->count();
@@ -43,7 +44,7 @@ class UserController extends Controller
         $activeCount     = User::where('is_active', true)->count();
 
         return view('users.index', compact(
-            'users', 'totalUsers', 'adminCount', 'accountantCount', 'auditorCount', 'staffCount', 'activeCount'
+            'users', 'totalUsers', 'superAdminCount', 'adminCount', 'accountantCount', 'auditorCount', 'staffCount', 'activeCount'
         ));
     }
 
@@ -53,23 +54,30 @@ class UserController extends Controller
             'name'     => 'required|string|max:150',
             'email'    => 'required|email|unique:users,email|max:150',
             'phone'    => 'nullable|string|max:30',
-            'role'     => 'required|string|in:ADMIN,ACCOUNTANT,AUDITOR,STAFF',
+            'role'     => 'required|string|in:SUPER_ADMIN,ADMIN,ACCOUNTANT,AUDITOR,STAFF',
             'password' => 'required|string|min:6|max:100',
             'is_active'=> 'nullable|boolean',
         ]);
+
+        $targetRole = strtoupper($request->role);
+
+        // Security check: Only a Super Admin can create another Super Admin
+        if (in_array($targetRole, ['SUPER_ADMIN', 'SUPERADMIN']) && (!Auth::check() || !Auth::user()->isSuperAdmin())) {
+            return back()->with('error', 'Only the Super Administrator (Top Owner) has the privilege to create a Super Administrator account.')->withInput();
+        }
 
         try {
             User::create([
                 'name'               => trim($request->name),
                 'email'              => strtolower(trim($request->email)),
                 'phone'              => $request->phone ? trim($request->phone) : null,
-                'role'               => strtoupper($request->role),
+                'role'               => $targetRole,
                 'password'           => Hash::make($request->password),
                 'is_active'          => $request->boolean('is_active', true),
                 'created_by_user_id' => Auth::id(),
             ]);
 
-            return back()->with('success', "User '{$request->name}' ({$request->role}) created successfully.");
+            return back()->with('success', "User '{$request->name}' ({$targetRole}) created successfully.");
         } catch (\Throwable $e) {
             Log::error('User creation failed: ' . $e->getMessage());
             return back()->with('error', 'Could not create user: ' . $e->getMessage())->withInput();
@@ -84,15 +92,25 @@ class UserController extends Controller
             'name'     => 'required|string|max:150',
             'email'    => "required|email|max:150|unique:users,email,{$id}",
             'phone'    => 'nullable|string|max:30',
-            'role'     => 'required|string|in:ADMIN,ACCOUNTANT,AUDITOR,STAFF',
+            'role'     => 'required|string|in:SUPER_ADMIN,ADMIN,ACCOUNTANT,AUDITOR,STAFF',
             'password' => 'nullable|string|min:6|max:100',
             'is_active'=> 'nullable|boolean',
         ]);
 
-        // Safety: Prevent admin from locking themselves out
+        $newRole = strtoupper($request->role);
+
+        // Security check: Only a Super Admin can edit or promote a Super Admin
+        if (($user->isSuperAdmin() || in_array($newRole, ['SUPER_ADMIN', 'SUPERADMIN'])) && !Auth::user()->isSuperAdmin()) {
+            return back()->with('error', 'Only a Super Administrator (Top Owner) has the privilege to edit or assign Super Administrator status.');
+        }
+
+        // Safety: Prevent self lockout
         if (Auth::id() === $user->id) {
-            if (strtoupper($request->role) !== 'ADMIN') {
-                return back()->with('error', 'You cannot change your own administrator role.');
+            if ($user->isSuperAdmin() && !in_array($newRole, ['SUPER_ADMIN', 'SUPERADMIN'])) {
+                return back()->with('error', 'You cannot downgrade your own Super Administrator role.');
+            }
+            if ($user->isAdmin() && !in_array($newRole, ['ADMIN', 'SUPER_ADMIN', 'SUPERADMIN'])) {
+                return back()->with('error', 'You cannot downgrade your own Administrator role.');
             }
             if ($request->has('is_active') && !$request->boolean('is_active')) {
                 return back()->with('error', 'You cannot deactivate your own account.');
@@ -103,7 +121,7 @@ class UserController extends Controller
             $user->name      = trim($request->name);
             $user->email     = strtolower(trim($request->email));
             $user->phone     = $request->phone ? trim($request->phone) : null;
-            $user->role      = strtoupper($request->role);
+            $user->role      = $newRole;
             $user->is_active = $request->boolean('is_active');
 
             if ($request->filled('password')) {
@@ -127,9 +145,21 @@ class UserController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
 
+        // Only Super Admin can delete a Super Admin
+        if ($user->isSuperAdmin()) {
+            if (!Auth::user()->isSuperAdmin()) {
+                return back()->with('error', 'Only a Super Administrator (Top Owner) can delete a Super Administrator account.');
+            }
+
+            $superAdminCount = User::whereIn('role', ['SUPER_ADMIN', 'SUPERADMIN'])->count();
+            if ($superAdminCount <= 1) {
+                return back()->with('error', 'Cannot delete the primary/last Super Administrator account.');
+            }
+        }
+
         if (strtoupper($user->role) === 'ADMIN') {
             $adminCount = User::where('role', 'ADMIN')->count();
-            if ($adminCount <= 1) {
+            if ($adminCount <= 1 && !User::whereIn('role', ['SUPER_ADMIN', 'SUPERADMIN'])->exists()) {
                 return back()->with('error', 'Cannot delete the last remaining Administrator.');
             }
         }

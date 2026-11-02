@@ -54,6 +54,29 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 /*
 |--------------------------------------------------------------------------
+| Super Admin Dedicated Authentication Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/super-admin/login', [AuthController::class, 'showSuperAdminLoginForm'])->name('superadmin.login');
+Route::post('/super-admin/login', [AuthController::class, 'superAdminLogin'])->name('superadmin.login.post');
+Route::get('/superadmin/login', function () {
+    return redirect()->route('superadmin.login');
+});
+Route::get('/super-admin', function () {
+    if (Auth::check()) {
+        if (Auth::user()->isSuperAdmin()) {
+            return redirect()->route('users.index');
+        }
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('superadmin.login');
+});
+Route::get('/superadmin', function () {
+    return redirect('/super-admin');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Public Invoice View (Client Portal)
 |--------------------------------------------------------------------------
 */
@@ -61,6 +84,9 @@ Route::get('/invoices/public/{token}', [InvoiceController::class, 'publicShow'])
 
 Route::get('/', function () {
     if (Auth::check()) {
+        if (Auth::user()->isSuperAdmin()) {
+            return redirect()->route('users.index');
+        }
         if (strtoupper(Auth::user()->role ?? '') === 'AUDITOR') {
             return redirect()->route('reports.profit_loss');
         }
@@ -71,6 +97,9 @@ Route::get('/', function () {
 
 Route::get('/admin', function () {
     if (Auth::check()) {
+        if (Auth::user()->isSuperAdmin()) {
+            return redirect()->route('users.index');
+        }
         if (strtoupper(Auth::user()->role ?? '') === 'AUDITOR') {
             return redirect()->route('reports.profit_loss');
         }
@@ -182,8 +211,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports/trial-balance/export', [ReportController::class, 'exportTrialBalance'])->name('reports.trial_balance.export');
     });
 
-    // 7. User Management (Admin Only)
-    Route::middleware(['role:admin'])->group(function () {
+    // 7. User Management (Super Admin & Admin)
+    Route::middleware(['role:super_admin,admin'])->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
