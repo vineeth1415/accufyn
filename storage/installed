@@ -1,0 +1,16 @@
+{
+    "installed_at": "2026-11-01 05:33:15",
+    "app_name": "WebotApp Accounting",
+    "app_version": "1.0.0",
+    "purchase_code": "WEBOT-REG-F989-D003-818E",
+    "customer_name": "Vineeth",
+    "customer_email": "vineeth141510@gmail.com",
+    "customer_phone": "+91 9497299662",
+    "company_name": "Vineeth Enterprise",
+    "company_email": "vineeth141510@gmail.com",
+    "admin_email": "vineeth141510@gmail.com",
+    "database": "accounting",
+    "domain": "127.0.0.1",
+    "agreed_license": true,
+    "license_status": "active"
+}

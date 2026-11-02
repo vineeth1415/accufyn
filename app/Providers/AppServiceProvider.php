@@ -32,13 +32,6 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        // Before installation, force session & cache to file driver so web installer never tries to connect to an unconfigured database
-        if (!file_exists(storage_path('installed'))) {
-            config([
-                'session.driver' => 'file',
-                'cache.default' => 'file',
-            ]);
-        }
     }
 
     /**
@@ -46,8 +39,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (file_exists(storage_path('installed'))) {
-            try {
+        try {
                 // Auto-heal missing database columns seamlessly
                 if (\Illuminate\Support\Facades\Schema::hasTable('bank_accounts')) {
                     \Illuminate\Support\Facades\Schema::table('bank_accounts', function (\Illuminate\Database\Schema\Blueprint $table) {
@@ -128,6 +120,5 @@ class AppServiceProvider extends ServiceProvider
             } catch (\Throwable $e) {
                 // Ignore during initial migrations or connection establishment
             }
-        }
     }
 }

@@ -39,9 +39,6 @@ $app = Application::configure(basePath: $basePath)
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
-        $middleware->validateCsrfTokens(except: [
-            'install/*',
-        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -20,16 +20,12 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Installer Routes (Pre-installation & Setup)
+| Web Installer Routes (Redirect to Login)
 |--------------------------------------------------------------------------
 */
-Route::prefix('install')->name('install.')->group(function () {
-    Route::get('/', [InstallController::class, 'index'])->name('index');
-    Route::post('/verify-customer', [InstallController::class, 'verifyCustomer'])->name('verify');
-    Route::post('/test-db', [InstallController::class, 'testDatabase'])->name('test_db');
-    Route::post('/process', [InstallController::class, 'executeInstall'])->name('process');
-    Route::get('/complete', [InstallController::class, 'complete'])->name('complete');
-});
+Route::any('/install/{any?}', function () {
+    return redirect()->route('login');
+})->where('any', '.*')->name('install.index');
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +59,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::get('/invoices/public/{token}', [InvoiceController::class, 'publicShow'])->name('invoices.public');
 
+Route::get('/', function () {
+    if (Auth::check()) {
+        if (strtoupper(Auth::user()->role ?? '') === 'AUDITOR') {
+            return redirect()->route('reports.profit_loss');
+        }
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
+})->name('home');
+
 Route::get('/admin', function () {
     if (Auth::check()) {
         if (strtoupper(Auth::user()->role ?? '') === 'AUDITOR') {
@@ -79,13 +85,6 @@ Route::get('/admin', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    // Root landing redirect based on role
-    Route::get('/', function () {
-        if (strtoupper(Auth::user()->role ?? '') === 'AUDITOR') {
-            return redirect()->route('reports.profit_loss');
-        }
-        return redirect()->route('dashboard');
-    });
 
     // 1. Dashboard (Admin, Accountant, Staff)
     Route::middleware(['role:admin,accountant,staff'])->group(function () {

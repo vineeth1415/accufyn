@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - WebotApp Accounting</title>
+    <title>Sign In - {{ $company->name ?? config('app.name', 'Accufyn') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,15 +17,35 @@
     <div class="w-full max-w-md">
         <!-- Logo & Header -->
         <div class="text-center mb-8">
-            <div class="inline-flex w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 items-center justify-center text-emerald-600 font-bold text-2xl shadow-sm mb-4">
-                <i class="fa-solid fa-coins"></i>
-            </div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">WebotApp Accounting</h1>
+            @if(isset($company) && !empty($company->logo_path) && file_exists(public_path($company->logo_path)))
+                <div class="inline-flex items-center justify-center mb-4">
+                    <img src="{{ asset($company->logo_path) }}" alt="{{ $company->name }}" class="h-16 w-auto object-contain max-w-[220px] rounded-xl shadow-sm">
+                </div>
+            @else
+                <div class="inline-flex w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 items-center justify-center text-emerald-600 font-bold text-2xl shadow-sm mb-4">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+            @endif
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $company->name ?? config('app.name', 'Accufyn') }}</h1>
             <p class="text-xs text-slate-500 mt-1">Enterprise Financial Ledger & Invoicing Platform</p>
         </div>
 
         <!-- Login Card -->
         <div class="bg-white border border-slate-200/80 rounded-2xl p-8 shadow-xl shadow-slate-200/50">
+            @if(session('info'))
+                <div class="mb-5 p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-sm text-blue-500"></i>
+                    <span>{{ session('info') }}</span>
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-sm text-emerald-500"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
             @if(isset($errors) && $errors->any())
                 <div class="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                     <i class="fa-solid fa-circle-exclamation text-sm text-red-500"></i>
@@ -41,9 +61,9 @@
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
                             <i class="fa-solid fa-envelope"></i>
                         </span>
-                        <input type="email" name="email" value="{{ old('email', 'admin@webotapp.com') }}" required
+                        <input type="email" name="email" value="{{ old('email') }}" required autofocus
                             class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-sm"
-                            placeholder="admin@webotapp.com">
+                            placeholder="your.email@example.com">
                     </div>
                 </div>
 
@@ -70,14 +90,14 @@
 
                 <button type="submit"
                     class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2">
-                    <span class="text-white">Sign In to Accounting</span>
+                    <span class="text-white">Sign In</span>
                     <i class="fa-solid fa-arrow-right text-xs text-white"></i>
                 </button>
             </form>
         </div>
 
         <p class="text-center text-xs text-slate-400 mt-8">
-            WebotApp Accounting Suite &bull; Secure Encrypted Installation
+            {{ $company->name ?? config('app.name', 'Accufyn') }} &bull; Secure Financial Platform
         </p>
     </div>
 </body>
