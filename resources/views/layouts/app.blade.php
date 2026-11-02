@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full light">
+<html lang="en" class="h-full light" style="height: 100%; overflow: hidden;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -292,10 +292,10 @@
         }
     </style>
 </head>
-<body class="h-full antialiased flex overflow-hidden">
+<body class="h-full antialiased flex overflow-hidden" style="height: 100vh; overflow: hidden;">
 
     <!-- Sidebar Navigation (Scrollable & Responsive) -->
-    <aside class="w-64 h-screen max-h-screen flex flex-col shrink-0 select-none z-30 transition-colors border-r">
+    <aside class="w-64 flex flex-col shrink-0 select-none z-30 transition-colors border-r" style="height: 100vh; min-height: 0; max-height: 100vh;">
         <!-- App Brand (Fixed at Top) -->
         <div class="h-16 flex items-center gap-3 px-6 border-b shrink-0">
             @if(!empty($company->logo_path) && file_exists(public_path($company->logo_path)))
@@ -314,7 +314,7 @@
         </div>
 
         <!-- Navigation Links (Scrollable Area) -->
-        <div class="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1 text-sm font-medium custom-sidebar-scroll">
+        <div class="flex-1 overflow-x-hidden p-3 space-y-1 text-sm font-medium custom-sidebar-scroll" style="overflow-y: auto; min-height: 0;">
             <nav class="space-y-1">
                 @if(Auth::check() && !Auth::user()->isAuditor())
                     <a href="{{ route('dashboard') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition {{ request()->routeIs('dashboard') ? 'active' : '' }}">
